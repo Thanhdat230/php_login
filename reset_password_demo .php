@@ -1,9 +1,9 @@
 <?php
-// Initialize the  session
+// Initialize the session
 session_start();
 
-// check if the user is logged in, otherwise redirect to login page
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+// check if the user is logged in , otherwise redirect to loggin page
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: login_demo.php");
     exit;
 }
@@ -12,58 +12,62 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 require_once "config_demo.php";
 
 //define variables and initialize with empty values
-$new_password = $confirm_password = "";
+$new_password =  $confirm_password = "";
 $new_password_err = $confirm_password_err = "";
 
-// Processing form data when form is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST"){
+//processing form data when form is submitted
+if($_SERVER["REQUEST_METHOD"] == "POST"){
 
-    //Validate new password
-    if (empty(trim($_POST["new_password"]))){
+    // Validate new password
+    if(empty(trim($_POST["new_password"]))){
         $new_password_err = "Please enter the new password.";
-    }else if (strlen(trim($_POST["new_password"]))){
+    }elseif (strlen(trim($_POST["new_password"])) < 6){
         $new_password_err = "Password must have at least 6 characters.";
-    } else{
-        $new_password  = trim($_POST["new_password"]);
+    }else {
+        $new_password = trim($_POST["new_password"]);
     }
 
-    //validate confirm password
+    // Validate confirm password
     if(empty(trim($_POST["confirm_password"]))){
-        $confirm_password_err = "Please confirm password.";
+        $confirm_password_err = "Please confirm the password.";
     }else{
         $confirm_password = trim($_POST["confirm_password"]);
-        if (empty($new_password_err) && ($new_password != $confirm_password)){
-            $confirm_password_err = "Password did not match.";
+        if(empty($new_password_err) && ($new_password != $confirm_password)){
+            $confirm_password_err = "Please did not match.";
         }
     }
 
-    // check input errors before updating the database
-    if (empty($new_password_err) && empty($confirm_password_err)){
-        //Prepare an update statement
+    //check input errors before updating the database
+    if(empty($new_password_err) && empty($$confirm_password_err)){
+        //prepared an update statement
         $sql = "UPDATE users1 SET password = ? WHERE id = ?";
 
-        if ($stmt = $mysqli->prepare($sql)){
-            // Bind variables to the prepared statement as paraments
-            $stmt->bind_param("si",$param_password, $param_id);
+        global $mysqli;
+        if($stmt = $mysqli->prepare($sql)){
+            //Bind variables to the prepared statement as parameters
+            $stmt->bind_param("si",$param_password,$param_id);
 
-            //set paraments
+            //set parameters
             $param_password = password_hash($new_password, PASSWORD_DEFAULT);
             $param_id = $_SESSION["id"];
 
-            //attempt to execute the prepared stament
-            if ($stmt ->execute()){
-                // password updated successfully.Destroy the session, and redirect to login page
+            // Attempt to execute the prepared statement
+            if($stmt->execute()){
+                // Password updated successfully.Destroy the session, and redirect to login page
                 session_destroy();
                 header("location: login_demo.php");
-                exit;
+                exit();
+            }else{
+                echo "Oops! Something went wrong.Please try again later.";
             }
 
             //close statement
             $stmt->close();
         }
     }
-    
+
     //close connection
+    global $mysqli;
     $mysqli->close();
 }
 ?>
